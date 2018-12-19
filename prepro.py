@@ -139,7 +139,25 @@ def iterate_minibatches(dataset,batch_len):
             labels.append(l)
         yield np.asarray(labels),np.asarray(tokens),np.asarray(caseing),np.asarray(char)
 
-def addCharInformatioin(Sentences):
+def generator(dataset,batch_len):
+    start = 0
+    for i in batch_len:
+        tokens = []
+        caseing = []
+        char = []
+        labels = []
+        data = dataset[start:i]
+        start = i
+        for dt in data:
+            t,c,ch,l = dt
+            l = np.expand_dims(l,-1)
+            tokens.append(t)
+            caseing.append(c)
+            char.append(ch)
+            labels.append(l)
+        yield [np.asarray(tokens),np.asarray(caseing),np.asarray(char)],np.asarray(labels)
+
+def addCharInformation(Sentences):
     for i,sentence in enumerate(Sentences):
         for j,data in enumerate(sentence):
             chars = [c for c in data[0]]

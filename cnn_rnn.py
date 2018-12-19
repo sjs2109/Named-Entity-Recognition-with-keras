@@ -2,12 +2,11 @@ import numpy as np
 from validation import compute_f1
 from keras.models import Model
 from keras.layers import TimeDistributed,Conv1D,Dense,Embedding,Input,Dropout,LSTM,Bidirectional,MaxPooling1D,Flatten,concatenate
-from prepro import readfile,createBatches,createMatrices,iterate_minibatches,addCharInformatioin,padding
+from prepro import readfile,createBatches,createMatrices,iterate_minibatches,addCharInformation,padding,generator
 from keras.utils import Progbar
-from keras.preprocessing.sequence import pad_sequences
 from keras.initializers import RandomUniform
 
-epochs = 50
+epochs = 2
 
 def tag_dataset(dataset):
     correctLabels = []
@@ -19,7 +18,7 @@ def tag_dataset(dataset):
         casing = np.asarray([casing])
         char = np.asarray([char])
         pred = model.predict([tokens, casing,char], verbose=False)[0]   
-        pred = pred.argmax(axis=-1) #Predict the classes            
+        pred = pred.argmax(axis=-1) #Predict the classes
         correctLabels.append(labels)
         predLabels.append(pred)
         b.update(i)
@@ -30,9 +29,9 @@ trainSentences = readfile("data/train.txt")
 devSentences = readfile("data/valid.txt")
 testSentences = readfile("data/test.txt")
 
-trainSentences = addCharInformatioin(trainSentences)
-devSentences = addCharInformatioin(devSentences)
-testSentences = addCharInformatioin(testSentences)
+trainSentences = addCharInformation(trainSentences)
+devSentences = addCharInformation(devSentences)
+testSentences = addCharInformation(testSentences)
 
 labelSet = set()
 words = {}
@@ -111,19 +110,13 @@ output = TimeDistributed(Dense(len(label2Idx), activation='softmax'))(output)
 model = Model(inputs=[words_input, casing_input,character_input], outputs=[output])
 model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
 model.summary()
+
+model.fit_generator(generator(train_batch,train_batch_len),steps_per_epoch=64)
+
 # plot_model(model, to_file='model.png')
 
 
-for epoch in range(epochs):    
-    print("Epoch %d/%d"%(epoch,epochs))
-    a = Progbar(len(train_batch_len))
-    for i,batch in enumerate(iterate_minibatches(train_batch,train_batch_len)):
-        labels, tokens, casing,char = batch       
-        model.train_on_batch([tokens, casing,char], labels)
-        a.update(i)
-    print(' ')
-
-#   Performance on dev dataset        
+#   Performance on dev dataset
 predLabels, correctLabels = tag_dataset(dev_batch)        
 pre_dev, rec_dev, f1_dev = compute_f1(predLabels, correctLabels, idx2Label)
 print("Dev-Data: Prec: %.3f, Rec: %.3f, F1: %.3f" % (pre_dev, rec_dev, f1_dev))

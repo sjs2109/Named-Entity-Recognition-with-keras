@@ -1,5 +1,3 @@
-import numpy as np
-
 
 #Method to compute the accruarcy. Call predict_labels to get the labels for the dataset
 def compute_f1(predictions, correct, idx2Label): 
