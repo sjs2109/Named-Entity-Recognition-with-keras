@@ -139,9 +139,9 @@ def iterate_minibatches(dataset,batch_len):
             labels.append(l)
         yield np.asarray(labels),np.asarray(tokens),np.asarray(caseing),np.asarray(char)
 
-def generator(dataset,batch_len):
+def generator(dataset):
     start = 0
-    for i in batch_len:
+    for i in len(dataset) :
         tokens = []
         caseing = []
         char = []
@@ -155,7 +155,62 @@ def generator(dataset,batch_len):
             caseing.append(c)
             char.append(ch)
             labels.append(l)
-        yield [np.asarray(tokens),np.asarray(caseing),np.asarray(char)],np.asarray(labels)
+        yield [[np.asarray(tokens),np.asarray(caseing),np.asarray(char)],np.asarray(labels)]
+
+
+def batch_iter(data, batch_size):
+    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
+
+    def data_generator():
+        data_size = len(data)
+        while True:
+            # Shuffle the data at each epoch
+
+            shuffled_data = data
+
+            for batch_num in range(num_batches_per_epoch):
+                start_index = batch_num * batch_size
+                end_index = min((batch_num + 1) * batch_size, data_size)
+                dataset = shuffled_data[start_index:end_index]
+                tokens = []
+                caseing = []
+                char = []
+                labels = []
+                for dt in dataset:
+                    t, c, ch, l = dt
+                    l = np.expand_dims(l, -1)
+                    tokens.append(t)
+                    caseing.append(c)
+                    char.append(ch)
+                    labels.append(l)
+
+                x, y = [np.asarray(tokens),np.asarray(caseing),np.asarray(char)], np.asarray(labels)
+                yield x, y
+
+    return num_batches_per_epoch, data_generator()
+
+
+def gen(data):
+    print('generator initiated')
+    idx = 0
+    while True:
+        tokens = []
+        caseing = []
+        char = []
+        labels = []
+        for dt in data:
+            t, c, ch, l = dt
+            l = np.expand_dims(l, -1)
+            tokens.append(t)
+            caseing.append(c)
+            char.append(ch)
+            labels.append(l)
+
+        x, y = [np.asarray(tokens)[:32], np.asarray(caseing)[:32], np.asarray(char)[:32]], np.asarray(labels)[:32]
+        yield x, y
+        idx += 1
+
+
 
 def addCharInformation(Sentences):
     for i,sentence in enumerate(Sentences):
