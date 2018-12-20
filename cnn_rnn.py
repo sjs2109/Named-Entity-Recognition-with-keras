@@ -115,7 +115,7 @@ model = Model(inputs=[words_input, casing_input,character_input], outputs=[outpu
 model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
 model.summary()
 
-''''
+'''
 for epoch in range(epochs):
     print("Epoch %d/%d"%(epoch,epochs))
     a = Progbar(len(train_batch_len))
@@ -126,7 +126,7 @@ for epoch in range(epochs):
         print(' ')
 '''
 
-'''train_steps, train_batches = batch_iter(train_batch, 32)'''
+
 
 model.fit_generator(generator=training_generator,verbose=1,epochs=2)
 
