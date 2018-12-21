@@ -2,7 +2,7 @@ import numpy as np
 from validation import compute_f1
 from keras.models import Model
 from keras.layers import TimeDistributed,Conv1D,Dense,Embedding,Input,Dropout,LSTM,Bidirectional,MaxPooling1D,Flatten,concatenate
-from prepro import readfile,createBatches,createMatrices,iterate_minibatches,addCharInformation,padding,generator,batch_iter,gen
+from prepro import readfile,createBatches,createMatrices,iterate_minibatches,addCharInformation,padding,generator,batch_iter,gen,batch_index
 from keras.utils import Progbar
 from keras.initializers import RandomUniform
 from keras.models import Sequential
@@ -94,7 +94,7 @@ idx2Label = {v: k for k, v in label2Idx.items()}
 train_batch,train_batch_len = createBatches(train_set)
 dev_batch,dev_batch_len = createBatches(dev_set)
 test_batch,test_batch_len = createBatches(test_set)
-training_generator = ProcessingSequence(train_set,64)
+
 
 
 words_input = Input(shape=(None,),dtype='int32',name='words_input')
@@ -115,20 +115,9 @@ model = Model(inputs=[words_input, casing_input,character_input], outputs=[outpu
 model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
 model.summary()
 
-'''
-for epoch in range(epochs):
-    print("Epoch %d/%d"%(epoch,epochs))
-    a = Progbar(len(train_batch_len))
-    for i,batch in enumerate(iterate_minibatches(train_batch,train_batch_len)):
-        labels, tokens, casing,char = batch
-        model.train_on_batch([tokens, casing,char], labels)
-        a.update(i)
-        print(' ')
-'''
 
-
-
-model.fit_generator(generator=training_generator,verbose=1,epochs=2)
+training_generator = iterate_minibatches(train_batch,train_batch_len)
+model.fit_generator(generator=training_generator,verbose=1,epochs=2,shuffle=False,steps_per_epoch=batch_index(train_batch_len))
 
 # plot_model(model, to_file='model.png')
 
