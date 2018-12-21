@@ -3,7 +3,7 @@ from preprocessing import *
 from DataGenerator import ProcessingSequence
 from models import *
 from keras.callbacks import EarlyStopping
-early_stopping = EarlyStopping(patience = 3) # 조기종료 콜백함수 정의
+early_stopping = EarlyStopping(patience=3) # 조기종료 콜백함수 정의
 
 epochs = 100
 
@@ -51,11 +51,11 @@ train_batch,train_batch_len = createBatches(train_set)
 validataion_batch, validataion_batch_len = createBatches(validataion_set)
 test_batch,test_batch_len = createBatches(test_set)
 
-model = gen_CNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,char2Idx=char2Idx,label2Idx=label2Idx)
+model = gen_RNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,label2Idx=label2Idx)
 
 training_generator = ProcessingSequence(train_batch,train_batch_len)
 validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len)
-model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator)
+model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping])
 
 # plot_model(model, to_file='model.png')
 

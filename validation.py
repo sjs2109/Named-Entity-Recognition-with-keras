@@ -8,11 +8,7 @@ def compute_f1(predictions, correct, idx2Label):
     label_correct = []    
     for sentence in correct:
         label_correct.append([idx2Label[element] for element in sentence])
-            
-    
-    #print label_pred
-    #print label_correct
-    
+
     prec = compute_precision(label_pred, label_correct)
     rec = compute_precision(label_correct, label_pred)
     
@@ -26,8 +22,6 @@ def compute_precision(guessed_sentences, correct_sentences):
     assert(len(guessed_sentences) == len(correct_sentences))
     correctCount = 0
     count = 0
-    
-    
     for sentenceIdx in range(len(guessed_sentences)):
         guessed = guessed_sentences[sentenceIdx]
         correct = correct_sentences[sentenceIdx]
