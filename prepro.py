@@ -121,6 +121,13 @@ def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
         
     return dataset
 
+def batch_index(batch_len):
+    batch_index.index = 0
+    result = batch_len[batch_index.index]
+    batch_index.index =   batch_index.index + 1
+    return result
+
+
 def iterate_minibatches(dataset,batch_len): 
     start = 0
     for i in batch_len:
@@ -155,8 +162,9 @@ def generator(dataset):
             caseing.append(c)
             char.append(ch)
             labels.append(l)
-        yield [[np.asarray(tokens),np.asarray(caseing),np.asarray(char)],np.asarray(labels)]
 
+        x, y = [np.asarray(tokens), np.asarray(caseing), np.asarray(char)], np.asarray(labels)
+        yield (x, y)
 
 def batch_iter(data, batch_size):
     num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
