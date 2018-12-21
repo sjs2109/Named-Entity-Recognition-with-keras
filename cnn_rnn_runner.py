@@ -3,6 +3,8 @@ from preprocessing import *
 from DataGenerator import ProcessingSequence
 from models import *
 
+epochs = 70
+
 trainSentences = readfile("data/train.txt")
 validationSentences = readfile("data/valid.txt")
 testSentences = readfile("data/test.txt")
@@ -51,7 +53,7 @@ model = gen_CNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbed
 
 training_generator = ProcessingSequence(train_batch,train_batch_len)
 validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len)
-model.fit_generator(generator=training_generator,verbose=1,epochs=2,shuffle=False, validation_data=validation_generator)
+model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator)
 
 # plot_model(model, to_file='model.png')
 
