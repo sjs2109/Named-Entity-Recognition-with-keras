@@ -1,6 +1,6 @@
-import numpy as np
-import random
 from keras.preprocessing.sequence import pad_sequences
+from keras.utils import Progbar
+import numpy as np
 
 def readfile(filename):
     '''
@@ -50,23 +50,6 @@ def getCasing(word, caseLookup):
     
    
     return caseLookup[casing]
-    
-
-def createBatches(data):
-    l = []
-    for i in data:
-        l.append(len(i[0]))
-    l = set(l)
-    batches = []
-    batch_len = []
-    z = 0
-    for i in l:
-        for batch in data:
-            if len(batch[0]) == i:
-                batches.append(batch)
-                z += 1
-        batch_len.append(z)
-    return batches,batch_len
 
 def createBatches(data):
     l = []
@@ -121,105 +104,6 @@ def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
         
     return dataset
 
-def batch_index(batch_len):
-    batch_index.index = 0
-    result = batch_len[batch_index.index]
-    batch_index.index =   batch_index.index + 1
-    return result
-
-
-def iterate_minibatches(dataset,batch_len): 
-    start = 0
-    for i in batch_len:
-        tokens = []
-        caseing = []
-        char = []
-        labels = []
-        data = dataset[start:i]
-        start = i
-        for dt in data:
-            t,c,ch,l = dt
-            l = np.expand_dims(l,-1)
-            tokens.append(t)
-            caseing.append(c)
-            char.append(ch)
-            labels.append(l)
-        yield np.asarray(labels),np.asarray(tokens),np.asarray(caseing),np.asarray(char)
-
-def generator(dataset):
-    start = 0
-    for i in len(dataset) :
-        tokens = []
-        caseing = []
-        char = []
-        labels = []
-        data = dataset[start:i]
-        start = i
-        for dt in data:
-            t,c,ch,l = dt
-            l = np.expand_dims(l,-1)
-            tokens.append(t)
-            caseing.append(c)
-            char.append(ch)
-            labels.append(l)
-
-        x, y = [np.asarray(tokens), np.asarray(caseing), np.asarray(char)], np.asarray(labels)
-        yield (x, y)
-
-def batch_iter(data, batch_size):
-    num_batches_per_epoch = int((len(data) - 1) / batch_size) + 1
-
-    def data_generator():
-        data_size = len(data)
-        while True:
-            # Shuffle the data at each epoch
-
-            shuffled_data = data
-
-            for batch_num in range(num_batches_per_epoch):
-                start_index = batch_num * batch_size
-                end_index = min((batch_num + 1) * batch_size, data_size)
-                dataset = shuffled_data[start_index:end_index]
-                tokens = []
-                caseing = []
-                char = []
-                labels = []
-                for dt in dataset:
-                    t, c, ch, l = dt
-                    l = np.expand_dims(l, -1)
-                    tokens.append(t)
-                    caseing.append(c)
-                    char.append(ch)
-                    labels.append(l)
-
-                x, y = [np.asarray(tokens),np.asarray(caseing),np.asarray(char)], np.asarray(labels)
-                yield x, y
-
-    return num_batches_per_epoch, data_generator()
-
-
-def gen(data):
-    print('generator initiated')
-    idx = 0
-    while True:
-        tokens = []
-        caseing = []
-        char = []
-        labels = []
-        for dt in data:
-            t, c, ch, l = dt
-            l = np.expand_dims(l, -1)
-            tokens.append(t)
-            caseing.append(c)
-            char.append(ch)
-            labels.append(l)
-
-        x, y = [np.asarray(tokens)[:32], np.asarray(caseing)[:32], np.asarray(char)[:32]], np.asarray(labels)[:32]
-        yield x, y
-        idx += 1
-
-
-
 def addCharInformation(Sentences):
     for i,sentence in enumerate(Sentences):
         for j,data in enumerate(sentence):
@@ -236,3 +120,42 @@ def padding(Sentences):
     for i,sentence in enumerate(Sentences):
         Sentences[i][2] = pad_sequences(Sentences[i][2],52,padding='post')
     return Sentences
+
+
+def embedding_word(path,wordEmbeddings,word2Idx,words):
+    fEmbeddings = open(path, encoding="utf-8")
+    for line in fEmbeddings:
+        split = line.strip().split(" ")
+        word = split[0]
+
+        if len(word2Idx) == 0:  # Add padding+unknown
+            word2Idx["PADDING_TOKEN"] = len(word2Idx)
+            vector = np.zeros(len(split) - 1)  # Zero vector vor 'PADDING' word
+            wordEmbeddings.append(vector)
+
+            word2Idx["UNKNOWN_TOKEN"] = len(word2Idx)
+            vector = np.random.uniform(-0.25, 0.25, len(split) - 1)
+            wordEmbeddings.append(vector)
+
+        if split[0].lower() in words:
+            vector = np.array([float(num) for num in split[1:]])
+            wordEmbeddings.append(vector)
+            word2Idx[split[0]] = len(word2Idx)
+    return np.array(wordEmbeddings)
+
+
+def tag_dataset(dataset,model):
+    correctLabels = []
+    predLabels = []
+    b = Progbar(len(dataset))
+    for i,data in enumerate(dataset):
+        tokens, casing,char, labels = data
+        tokens = np.asarray([tokens])
+        casing = np.asarray([casing])
+        char = np.asarray([char])
+        pred = model.predict([tokens, casing,char], verbose=False)[0]
+        pred = pred.argmax(axis=-1) #Predict the classes
+        correctLabels.append(labels)
+        predLabels.append(pred)
+        b.update(i)
+    return predLabels, correctLabels
