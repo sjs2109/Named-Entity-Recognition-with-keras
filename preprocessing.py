@@ -8,6 +8,8 @@ def readfile(filename):
     return format :
     [ ['EU', 'B-ORG'], ['rejects', 'O'], ['German', 'B-MISC'], ['call', 'O'], ['to', 'O'], ['boycott', 'O'], ['British', 'B-MISC'], ['lamb', 'O'], ['.', 'O'] ]
     '''
+
+    print("!==Read data file : path = {0}==!".format(filename))
     f = open(filename)
     sentences = []
     sentence = []
@@ -22,7 +24,6 @@ def readfile(filename):
 
     if len(sentence) >0:
         sentences.append(sentence)
-        sentence = []
     return sentences
 
 def getCasing(word, caseLookup):   
@@ -52,6 +53,7 @@ def getCasing(word, caseLookup):
     return caseLookup[casing]
 
 def createBatches(data):
+    print("createBatches")
     l = []
     for i in data:
         l.append(len(i[0]))
@@ -68,11 +70,9 @@ def createBatches(data):
     return batches,batch_len
 
 def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
+    print("createMatrices")
     unknownIdx = word2Idx['UNKNOWN_TOKEN']
-    paddingIdx = word2Idx['PADDING_TOKEN']    
-        
     dataset = []
-    
     wordCount = 0
     unknownWordCount = 0
     
@@ -105,6 +105,10 @@ def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
     return dataset
 
 def addCharInformation(Sentences):
+    print("addCharInformation")
+    '''
+    sentence[i][j] = [word,tag] (e.g., ["EU","B-ORG"]) --> [word,chars,tag] (e.g., ["EU", ["E","U"] ,"B-ORG"]
+    '''
     for i,sentence in enumerate(Sentences):
         for j,data in enumerate(sentence):
             chars = [c for c in data[0]]
@@ -112,6 +116,7 @@ def addCharInformation(Sentences):
     return Sentences
 
 def padding(Sentences):
+    print("padding")
     maxlen = 52
     for sentence in Sentences:
         char = sentence[2]
@@ -123,10 +128,10 @@ def padding(Sentences):
 
 
 def embedding_word(path,wordEmbeddings,word2Idx,words):
+    print("embedding_word")
     fEmbeddings = open(path, encoding="utf-8")
     for line in fEmbeddings:
         split = line.strip().split(" ")
-        word = split[0]
 
         if len(word2Idx) == 0:  # Add padding+unknown
             word2Idx["PADDING_TOKEN"] = len(word2Idx)
@@ -153,7 +158,7 @@ def tag_dataset(dataset,model):
         tokens = np.asarray([tokens])
         casing = np.asarray([casing])
         char = np.asarray([char])
-        pred = model.predict([tokens, casing,char], verbose=False)[0]
+        pred = model.predict([tokens, casing,char], verbose=True)[0]
         pred = pred.argmax(axis=-1) #Predict the classes
         correctLabels.append(labels)
         predLabels.append(pred)

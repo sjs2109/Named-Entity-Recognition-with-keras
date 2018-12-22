@@ -1,4 +1,5 @@
 
+
 #Method to compute the accruarcy. Call predict_labels to get the labels for the dataset
 def compute_f1(predictions, correct, idx2Label): 
     label_pred = []    
@@ -17,6 +18,7 @@ def compute_f1(predictions, correct, idx2Label):
         f1 = 2.0 * prec * rec / (prec + rec);
         
     return prec, rec, f1
+
 
 def compute_precision(guessed_sentences, correct_sentences):
     assert(len(guessed_sentences) == len(correct_sentences))

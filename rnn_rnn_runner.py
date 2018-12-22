@@ -3,6 +3,8 @@ from preprocessing import *
 from DataGenerator import ProcessingSequence
 from models import *
 from keras.callbacks import EarlyStopping
+from keras.utils.vis_utils import plot_model
+
 early_stopping = EarlyStopping(patience=3) # 조기종료 콜백함수 정의
 
 epochs = 100
@@ -41,7 +43,7 @@ for c in " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-_()[
     char2Idx[c] = len(char2Idx)
 
 # :: Read in word embeddings ::
-wordEmbeddings = embedding_word(path="embeddings/glove.6B.300d.txt",word2Idx=word2Idx,words=words,wordEmbeddings=wordEmbeddings)
+wordEmbeddings = embedding_word(path="embeddings/glove.6B.100d.txt",word2Idx=word2Idx,words=words,wordEmbeddings=wordEmbeddings)
 
 train_set = padding(createMatrices(trainSentences,word2Idx,  label2Idx, case2Idx,char2Idx))
 validataion_set = padding(createMatrices(validationSentences, word2Idx, label2Idx, case2Idx, char2Idx))
@@ -50,14 +52,14 @@ test_set = padding(createMatrices(testSentences, word2Idx, label2Idx, case2Idx,c
 train_batch,train_batch_len = createBatches(train_set)
 validataion_batch, validataion_batch_len = createBatches(validataion_set)
 test_batch,test_batch_len = createBatches(test_set)
-
-model = gen_RNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,label2Idx=label2Idx)
-
 training_generator = ProcessingSequence(train_batch,train_batch_len)
 validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len)
+
+
+model = gen_RNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,label2Idx=label2Idx)
 model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping])
 
-# plot_model(model, to_file='model.png')
+plot_model(model, to_file='rnn_rnn.png')
 
 idx2Label = {v: k for k, v in label2Idx.items()}
 
