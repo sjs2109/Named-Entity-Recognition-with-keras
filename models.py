@@ -15,7 +15,7 @@ def gen_CNN_RNN_model(wordEmbeddings,caseEmbeddings,char2Idx,label2Idx):
         Embedding(len(char2Idx), 30, embeddings_initializer=RandomUniform(minval=-0.5, maxval=0.5)),
         name='char_embedding')(character_input)
     dropout = Dropout(0.5)(embed_char_out)
-    conv1d_out = TimeDistributed(Conv1D(kernel_size=3, filters=30, padding='same', activation='tanh', strides=1))(
+    conv1d_out = TimeDistributed(Conv1D(kernel_size=3, filters=30, padding='same', activation='elu', strides=1))(
         dropout)
     maxpool_out = TimeDistributed(MaxPooling1D(52))(conv1d_out)
     char = TimeDistributed(Flatten())(maxpool_out)
