@@ -15,13 +15,13 @@ def gen_CNN_RNN_model(wordEmbeddings,caseEmbeddings,char2Idx,label2Idx):
         Embedding(len(char2Idx), 30, embeddings_initializer=RandomUniform(minval=-0.5, maxval=0.5)),
         name='char_embedding')(character_input)
     dropout = Dropout(0.5)(embed_char_out)
-    conv1d_out = TimeDistributed(Conv1D(kernel_size=3, filters=30, padding='same', activation='elu', strides=1))(
+    conv1d_out = TimeDistributed(Conv1D(kernel_size=3, filters=30, padding='same', activation='tanh', strides=1))(
         dropout)
     maxpool_out = TimeDistributed(MaxPooling1D(52))(conv1d_out)
     char = TimeDistributed(Flatten())(maxpool_out)
     char = Dropout(0.5)(char)
     output = concatenate([words, casing, char])
-    output = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
+    output = Bidirectional(LSTM(400, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
     output = TimeDistributed(Dense(len(label2Idx), activation='softmax'))(output)
     model = Model(inputs=[words_input, casing_input, character_input], outputs=[output])
     model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
@@ -39,15 +39,15 @@ def gen_RNN_RNN_model(wordEmbeddings,caseEmbeddings,label2Idx):
                        trainable=False)(casing_input)
     character_input = Input(shape=(None, 52,), name='char_input')
 
-    dropout = Dropout(0.5)(character_input)
-
-    rnn1 = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(dropout)
+    rnn1 = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(character_input)
+    rnn1 = Dropout(0.5)(rnn1)
     rnn1_out = TimeDistributed(Dense(len(label2Idx), activation='softmax'))(rnn1)
 
     char = TimeDistributed(Flatten())(rnn1_out)
     char = Dropout(0.5)(char)
     output = concatenate([words, casing, char])
     output = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
+    output = Dropout(0.5)(output)
     output = TimeDistributed(Dense(len(label2Idx), activation='softmax'))(output)
     model = Model(inputs=[words_input, casing_input, character_input], outputs=[output])
     model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
