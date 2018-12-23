@@ -69,7 +69,7 @@ def createBatches(data):
         batch_len.append(z)
     return batches,batch_len
 
-def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
+def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx,model):
     print("createMatrices")
     unknownIdx = word2Idx['UNKNOWN_TOKEN']
     dataset = []
@@ -96,11 +96,14 @@ def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx):
                 charIdx.append(char2Idx[x])
             #Get the label and map to int            
             wordIndices.append(wordIdx)
-            caseIndices.append(getCasing(word, case2Idx))
+            if model == "CNN":
+                caseIndices.append(np.expand_dims(getCasing(word, case2Idx),-1))
+            else:
+                caseIndices.append(getCasing(word, case2Idx))
             charIndices.append(charIdx)
             labelIndices.append(label2Idx[label])
-           
-        dataset.append([wordIndices, caseIndices, charIndices, labelIndices]) 
+
+        dataset.append([wordIndices, caseIndices, charIndices, labelIndices])
         
     return dataset
 

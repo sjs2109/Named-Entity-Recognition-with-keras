@@ -5,9 +5,10 @@ from models import *
 from keras.callbacks import EarlyStopping
 from keras.utils.vis_utils import plot_model
 import matplotlib.pyplot as plt
+
 early_stopping = EarlyStopping(patience = 10) # 조기종료 콜백함수 정의
 
-epochs = 100
+epochs = 200
 
 trainSentences = readfile("data/train.txt")
 validationSentences = readfile("data/valid.txt")
@@ -69,7 +70,7 @@ for c in " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-_()[
 #{'PADDING': 0, 'UNKNOWN': 1, ' ': 2, '0': 3, '1': 4, '2': 5, '3': 6, '4': 7, '5': 8, '6': 9, '7': 10, '8': 11, '9': 12, 'a': 13, 'b': 14, 'c': 15, 'd': 16, 'e': 17, 'f': 18, 'g': 19, 'h': 20, 'i': 21, 'j': 22, 'k': 23, 'l': 24, 'm': 25, 'n': 26, 'o': 27, 'p': 28, 'q': 29, 'r': 30, 's': 31, 't': 32, 'u': 33, 'v': 34, 'w': 35, 'x': 36, 'y': 37, 'z': 38, 'A': 39, 'B': 40, 'C': 41, 'D': 42, 'E': 43, 'F': 44, 'G': 45, 'H': 46, 'I': 47, 'J': 48, 'K': 49, 'L': 50, 'M': 51, 'N': 52, 'O': 53, 'P': 54, 'Q': 55, 'R': 56, 'S': 57, 'T': 58, 'U': 59, 'V': 60, 'W': 61, 'X': 62, 'Y': 63, 'Z': 64, '.': 65, ',': 66, '-': 67, '_': 68, '(': 69, ')': 70, '[': 71, ']': 72, '{': 73, '}': 74, '!': 75, '?': 76, ':': 77, ';': 78, '#': 79, "'": 80, '"': 81, '/': 82, '\\': 83, '%': 84, '$': 85, '`': 86, '&': 87, '=': 88, '*': 89, '+': 90, '@': 91, '^': 92, '~': 93, '|': 94}
 
 # :: Read in word embeddings ::
-wordEmbeddings = embedding_word(path="embeddings/glove.6B.50d.txt",word2Idx=word2Idx,words=words,wordEmbeddings=wordEmbeddings)
+wordEmbeddings = embedding_word(path="embeddings/glove.6B.100d.txt",word2Idx=word2Idx,words=words,wordEmbeddings=wordEmbeddings)
 
 '''
 #word2vec in wordEmbeddings
@@ -91,21 +92,19 @@ wordEmbeddings = embedding_word(path="embeddings/glove.6B.50d.txt",word2Idx=word
 '''
 
 
-train_set = padding(createMatrices(trainSentences,word2Idx,  label2Idx, case2Idx,char2Idx))
-validataion_set = padding(createMatrices(validationSentences, word2Idx, label2Idx, case2Idx, char2Idx))
-test_set = padding(createMatrices(testSentences, word2Idx, label2Idx, case2Idx,char2Idx))
+train_set = padding(createMatrices(trainSentences,word2Idx,  label2Idx, case2Idx,char2Idx,"CNN"))
+validataion_set = padding(createMatrices(validationSentences, word2Idx, label2Idx, case2Idx, char2Idx,"CNN"))
+test_set = padding(createMatrices(testSentences, word2Idx, label2Idx, case2Idx,char2Idx,"CNN"))
 
 train_batch,train_batch_len = createBatches(train_set)
 validataion_batch, validataion_batch_len = createBatches(validataion_set)
 test_batch,test_batch_len = createBatches(test_set)
 
-model = gen_CNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,char2Idx=char2Idx,label2Idx=label2Idx)
-
+model = gen_CNN_RNN_model(wordEmbeddings=wordEmbeddings,char2Idx=char2Idx,label2Idx=label2Idx,case2Idx=case2Idx)
+plot_model(model, to_file='cnn_rnn.png')
 training_generator = ProcessingSequence(train_batch,train_batch_len)
 validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len)
-hist = model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping], workers=10, use_multiprocessing=True)
-
-plot_model(model, to_file='cnn_rnn.png')
+hist = model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping],workers=10,use_multiprocessing=True)
 
 idx2Label = {v: k for k, v in label2Idx.items()}
 
@@ -116,12 +115,12 @@ print("Test-Data: Prec: %.3f, Rec: %.3f, F1: %.3f" % (pre_test, rec_test, f1_tes
 
 
 fig, loss_ax = plt.subplots()
+acc_ax = loss_ax.twinx()
 
 loss_ax.plot(hist.history['loss'], 'y', label='train loss')
 loss_ax.plot(hist.history['val_loss'], 'r', label='val loss')
-
 loss_ax.set_xlabel('epoch')
 loss_ax.set_ylabel('loss')
-
 loss_ax.legend(loc='upper left')
-plt.savefig("cnn_rnn_hist.png",dpi=300)
+
+plt.savefig("cnn_rnn_hist.png", dpi=300)

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 early_stopping = EarlyStopping(patience=10) # 조기종료 콜백함수 정의
 
-epochs = 100
+epochs = 200
 
 trainSentences = readfile("data/train.txt")
 validationSentences = readfile("data/valid.txt")
@@ -46,9 +46,9 @@ for c in " 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.,-_()[
 # :: Read in word embeddings ::
 wordEmbeddings = embedding_word(path="embeddings/glove.6B.100d.txt",word2Idx=word2Idx,words=words,wordEmbeddings=wordEmbeddings)
 
-train_set = padding(createMatrices(trainSentences,word2Idx,  label2Idx, case2Idx,char2Idx))
-validataion_set = padding(createMatrices(validationSentences, word2Idx, label2Idx, case2Idx, char2Idx))
-test_set = padding(createMatrices(testSentences, word2Idx, label2Idx, case2Idx,char2Idx))
+train_set = padding(createMatrices(trainSentences,word2Idx,  label2Idx, case2Idx,char2Idx,"RNN"))
+validataion_set = padding(createMatrices(validationSentences, word2Idx, label2Idx, case2Idx, char2Idx,"RNN"))
+test_set = padding(createMatrices(testSentences, word2Idx, label2Idx, case2Idx,char2Idx,"RNN"))
 
 train_batch,train_batch_len = createBatches(train_set)
 validataion_batch, validataion_batch_len = createBatches(validataion_set)
@@ -58,9 +58,10 @@ validation_generator = ProcessingSequence(validataion_batch, validataion_batch_l
 
 
 model = gen_RNN_RNN_model(wordEmbeddings=wordEmbeddings,caseEmbeddings=caseEmbeddings,label2Idx=label2Idx)
+plot_model(model, to_file='rnn_rnn.png')
 hist = model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping],workers=10,use_multiprocessing=True)
 
-plot_model(model, to_file='rnn_rnn.png')
+
 
 idx2Label = {v: k for k, v in label2Idx.items()}
 
@@ -71,14 +72,12 @@ print("Test-Data: Prec: %.3f, Rec: %.3f, F1: %.3f" % (pre_test, rec_test, f1_tes
 
 
 fig, loss_ax = plt.subplots()
+acc_ax = loss_ax.twinx()
 
 loss_ax.plot(hist.history['loss'], 'y', label='train loss')
 loss_ax.plot(hist.history['val_loss'], 'r', label='val loss')
-
 loss_ax.set_xlabel('epoch')
 loss_ax.set_ylabel('loss')
-
 loss_ax.legend(loc='upper left')
-plt.savefig("rnn_rnn_hist.png",dpi=300)
 
-
+plt.savefig("rnn_rnn_hist.png", dpi=300)
