@@ -4,13 +4,14 @@ import numpy as np
 
 
 class ProcessingSequence(Sequence):
-    def __init__(self, dataset, batch_size_index):
+    def __init__(self, dataset, batch_size_index,type):
 
         self.dataset = dataset
         self.index = 0
 
         self.batch_size_index = batch_size_index
         self.process_fn = (lambda x: x)
+        self.type=type
 
     def __len__(self):
         return len(self.batch_size_index) - 1
@@ -35,6 +36,8 @@ class ProcessingSequence(Sequence):
         for dt in data:
             t, c, ch, l = dt
             l = np.expand_dims(l, -1)
+            if self.type == "CNN":
+                t = np.expand_dims(t, -1)
             tokens.append(t)
             casing.append(c)
             char.append(ch)

@@ -69,7 +69,7 @@ def createBatches(data):
         batch_len.append(z)
     return batches,batch_len
 
-def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx,model):
+def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx,type):
     print("createMatrices")
     unknownIdx = word2Idx['UNKNOWN_TOKEN']
     dataset = []
@@ -96,7 +96,7 @@ def createMatrices(sentences, word2Idx, label2Idx, case2Idx,char2Idx,model):
                 charIdx.append(char2Idx[x])
             #Get the label and map to int            
             wordIndices.append(wordIdx)
-            if model == "CNN":
+            if type == "CNN":
                 caseIndices.append(np.expand_dims(getCasing(word, case2Idx),-1))
             else:
                 caseIndices.append(getCasing(word, case2Idx))
@@ -152,12 +152,14 @@ def embedding_word(path,wordEmbeddings,word2Idx,words):
     return np.array(wordEmbeddings)
 
 
-def tag_dataset(dataset,model):
+def tag_dataset(dataset,model,type):
     correctLabels = []
     predLabels = []
     b = Progbar(len(dataset))
     for i,data in enumerate(dataset):
         tokens, casing,char, labels = data
+        if type == "CNN":
+            tokens = np.expand_dims(tokens,-1)
         tokens = np.asarray([tokens])
         casing = np.asarray([casing])
         char = np.asarray([char])

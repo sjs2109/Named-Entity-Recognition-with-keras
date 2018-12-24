@@ -102,14 +102,14 @@ test_batch,test_batch_len = createBatches(test_set)
 
 model = gen_CNN_RNN_model(wordEmbeddings=wordEmbeddings,char2Idx=char2Idx,label2Idx=label2Idx,case2Idx=case2Idx)
 plot_model(model, to_file='cnn_rnn.png')
-training_generator = ProcessingSequence(train_batch,train_batch_len)
-validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len)
+training_generator = ProcessingSequence(train_batch,train_batch_len,"CNN")
+validation_generator = ProcessingSequence(validataion_batch, validataion_batch_len,"CNN")
 hist = model.fit_generator(generator=training_generator,verbose=1,epochs=epochs, validation_data=validation_generator,callbacks=[early_stopping],workers=10,use_multiprocessing=True)
 
 idx2Label = {v: k for k, v in label2Idx.items()}
 
 #   Performance on test dataset
-predLabels, correctLabels = tag_dataset(test_batch,model)
+predLabels, correctLabels = tag_dataset(test_batch,model,"CNN")
 pre_test, rec_test, f1_test= compute_f1(predLabels, correctLabels, idx2Label)
 print("Test-Data: Prec: %.3f, Rec: %.3f, F1: %.3f" % (pre_test, rec_test, f1_test))
 
