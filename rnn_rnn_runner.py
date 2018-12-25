@@ -6,7 +6,7 @@ from keras.callbacks import EarlyStopping
 from keras.utils.vis_utils import plot_model
 import matplotlib.pyplot as plt
 
-early_stopping = EarlyStopping(patience=10) # 조기종료 콜백함수 정의
+early_stopping = EarlyStopping(patience=7) # 조기종료 콜백함수 정의
 
 epochs = 200
 

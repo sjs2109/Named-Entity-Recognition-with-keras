@@ -4,7 +4,7 @@ import numpy as np
 
 
 class ProcessingSequence(Sequence):
-    def __init__(self, dataset, batch_size_index,type):
+    def __init__(self, dataset, batch_size_index):
 
         self.dataset = dataset
         self.index = 0

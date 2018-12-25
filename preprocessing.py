@@ -152,7 +152,7 @@ def embedding_word(path,wordEmbeddings,word2Idx,words):
     return np.array(wordEmbeddings)
 
 
-def tag_dataset(dataset,model,type):
+def tag_dataset(dataset,model):
     correctLabels = []
     predLabels = []
     b = Progbar(len(dataset))
