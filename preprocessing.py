@@ -158,8 +158,6 @@ def tag_dataset(dataset,model,type):
     b = Progbar(len(dataset))
     for i,data in enumerate(dataset):
         tokens, casing,char, labels = data
-        if type == "CNN":
-            tokens = np.expand_dims(tokens,-1)
         tokens = np.asarray([tokens])
         casing = np.asarray([casing])
         char = np.asarray([char])

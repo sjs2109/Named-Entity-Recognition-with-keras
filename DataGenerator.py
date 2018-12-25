@@ -36,8 +36,6 @@ class ProcessingSequence(Sequence):
         for dt in data:
             t, c, ch, l = dt
             l = np.expand_dims(l, -1)
-            if self.type == "CNN":
-                t = np.expand_dims(t, -1)
             tokens.append(t)
             casing.append(c)
             char.append(ch)

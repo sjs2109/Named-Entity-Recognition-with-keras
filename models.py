@@ -5,15 +5,13 @@ from keras.initializers import RandomUniform
 
 
 def gen_CNN_RNN_model(wordEmbeddings,char2Idx,label2Idx,case2Idx):
-    words_input = Input(shape=(None,1,), dtype='int32', name='words_input')
-    embed_word_out = TimeDistributed(
-        Embedding(wordEmbeddings.shape[0], wordEmbeddings.shape[1], embeddings_initializer=RandomUniform(minval=-0.5, maxval=0.5)),
-        name='word_embedding')(words_input)
-    conv1d_out = TimeDistributed(Conv1D(kernel_size=5, filters=wordEmbeddings.shape[1], padding='same', activation='relu', strides=1))(
-        embed_word_out)
-    maxpool_out = TimeDistributed(MaxPooling1D(1))(conv1d_out)
-    words = TimeDistributed(Flatten())(maxpool_out)
+    words_input = Input(shape=(None,), dtype='int32', name='words_input')
+    words = Embedding(input_dim=wordEmbeddings.shape[0], output_dim=wordEmbeddings.shape[1], weights=[wordEmbeddings],
+                      trainable=False)(words_input)
+
+    words = TimeDistributed(Flatten())(words)
     words = Dropout(0.5)(words)
+ 
     casing_input= Input(shape=(None,1,), dtype='int32', name='casing_input')
     embed_casing_out = TimeDistributed(
         Embedding(len(case2Idx), 1, embeddings_initializer=RandomUniform(minval=-0.5, maxval=0.5)),
@@ -22,8 +20,7 @@ def gen_CNN_RNN_model(wordEmbeddings,char2Idx,label2Idx,case2Idx):
         embed_casing_out)
     maxpool_out = TimeDistributed(MaxPooling1D(1))(conv1d_out)
     casing = TimeDistributed(Flatten())(maxpool_out)
-    casing = Dropout(0.5)(casing)
-
+    
     character_input = Input(shape=(None, 52,), name='char_input')
     embed_char_out = TimeDistributed(
         Embedding(len(char2Idx), 30, embeddings_initializer=RandomUniform(minval=-0.5, maxval=0.5)),
@@ -34,8 +31,9 @@ def gen_CNN_RNN_model(wordEmbeddings,char2Idx,label2Idx,case2Idx):
     char = TimeDistributed(Flatten())(maxpool_out)
     char = Dropout(0.5)(char)
     output = concatenate([words, casing, char])
-    output = Bidirectional(LSTM(400, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
-    output = Bidirectional(LSTM(400, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
+    output = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
+    output = Bidirectional(LSTM(200, return_sequences=True, dropout=0.50, recurrent_dropout=0.25))(output)
+    output = Dropout(0.5)(output)
     output = TimeDistributed(Dense(len(label2Idx), activation='softmax'))(output)
     model = Model(inputs=[words_input, casing_input, character_input], outputs=[output])
     model.compile(loss='sparse_categorical_crossentropy', optimizer='nadam')
